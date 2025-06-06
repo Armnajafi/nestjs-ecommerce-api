@@ -12,7 +12,7 @@ export class AppController {
   }
 
   @MessagePattern({ cmd: 'ping' })
-  ping() {
-    return { msg: 'pong from auth_service' };
+  ping(data: { username: string }) {
+    return { msg: 'pong from ' + data.username };
   }
 }
