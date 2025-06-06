@@ -1,0 +1,16 @@
+{
+  "name": "nestjs-ecommerce-api",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "start:gateway": "npm run start --workspace=apps/gateway",
+    "start:auth": "npm run start --workspace=apps/auth",
+    "start:products": "npm run start --workspace=apps/products"
+  },
+  "devDependencies": {
+    "prettier": "^3.0.0",
+    "eslint": "^8.0.0"
+  }
+}

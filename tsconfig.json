@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@common/*": ["libs/common/*"],
+      "@config/*": ["libs/config/*"]
+    }
+  }
+}
