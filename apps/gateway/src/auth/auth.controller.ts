@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject } from '@nestjs/common';
+import { Body, Controller, Inject, Post } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 
 @Controller('auth')
@@ -7,8 +7,11 @@ export class AuthController {
     @Inject('AUTH_SERVICE') private readonly authClient: ClientProxy,
   ) {}
 
-  @Get('ping')
-  ping(@Body() body: { username: string }) {
-    return this.authClient.send({ cmd: 'ping' }, { username: body.username });
+  @Post('request')
+  authRequest(@Body() body: { phone: string }) {
+    return this.authClient.send(
+      { cmd: 'auth.request-otp' },
+      { phone: body.phone },
+    );
   }
 }
