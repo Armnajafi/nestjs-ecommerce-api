@@ -17,7 +17,7 @@ export class AuthService {
     console.log(otp);
 
     // 2 min expire time;
-    const expireAt = Date.now() * 2 * 60 * 1000;
+    const expireAt = new Date(Date.now() + 2 * 60 * 1000);
     await this.prisma.otpCode.deleteMany({
       where: { phone },
     });
@@ -27,7 +27,7 @@ export class AuthService {
       data: {
         phone,
         otp,
-        expireAt: new Date(expireAt),
+        expireAt,
       },
     });
 
