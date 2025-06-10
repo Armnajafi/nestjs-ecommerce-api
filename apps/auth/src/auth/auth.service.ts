@@ -118,6 +118,7 @@ export class AuthService {
       // get is temp and phone number from jwt token
       const payload: TempRegisterTokenPayload = this.jwtService.verify(
         data.temp_token,
+        { secret: this.JWT_SECRET },
       );
 
       // check if is not temp and phone number is not exist then return error
@@ -155,7 +156,9 @@ export class AuthService {
       };
 
       // sign access token with jwt
-      const accessToken = this.jwtService.sign(realPayload);
+      const accessToken = this.jwtService.sign(realPayload, {
+        secret: this.JWT_SECRET,
+      });
 
       // return success
       return {
