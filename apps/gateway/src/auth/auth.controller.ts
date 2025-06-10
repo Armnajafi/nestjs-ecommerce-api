@@ -22,4 +22,25 @@ export class AuthController {
       { phone: body.phone, otp: body.otp },
     );
   }
+
+  @Post('complete-register')
+  completeRegister(
+    @Body()
+    body: {
+      temp_token: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+    },
+  ) {
+    return this.authClient.send(
+      { cmd: 'auth.complete-register' },
+      {
+        temp_token: body.temp_token,
+        firstName: body.firstName,
+        lastName: body.lastName,
+        email: body.email,
+      },
+    );
+  }
 }
