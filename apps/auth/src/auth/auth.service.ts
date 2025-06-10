@@ -9,6 +9,8 @@ export class AuthService {
     private readonly prisma: PrismaService,
   ) {}
 
+  private JWT_SECRET = process.env.JWT_SECRET;
+
   async requestOtp(phone: string) {
     // define otp and generate otp with generateOtp() function
     const otp = this.generateOtp();
@@ -77,7 +79,9 @@ export class AuthService {
         phone: user.phone,
         email: user.email,
       };
-      const accessToken = this.jwtService.sign(payload);
+      const accessToken = this.jwtService.sign(payload, {
+        secret: this.JWT_SECRET,
+      });
 
       // return success message and already registered status
       return {
@@ -87,7 +91,10 @@ export class AuthService {
       };
     } else {
       // create temproray token for user signup(register)
-      const tempToken = this.jwtService.sign({ phone, temp: true });
+      const tempToken = this.jwtService.sign(
+        { phone, temp: true },
+        { secret: this.JWT_SECRET },
+      );
 
       // return success message and need register status
       return {
@@ -97,7 +104,6 @@ export class AuthService {
       };
     }
   }
-
   async completeRegister(data: {
     temp_token: string;
     firstName: string;
