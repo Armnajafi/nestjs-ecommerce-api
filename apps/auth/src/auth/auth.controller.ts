@@ -1,13 +1,20 @@
 import { Controller } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { MessagePattern } from '@nestjs/microservices';
+import { validateRequestOtp } from './validators/request-otp.validator';
 
 @Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @MessagePattern({ cmd: 'auth.request-otp' })
-  requestOtp(data: { phone: string }) {
+  async requestOtp(data: { phone: string }) {
+    // validation rule
+    const result = await validateRequestOtp(data);
+    if (result) {
+      return { success: false, errors: result };
+    }
+
     return this.authService.requestOtp(data.phone);
   }
 
