@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AuthController } from './auth/auth.controller';
-import { ProductsController } from './products/products.controller';
+import { ProductController } from './product/product.controller';
 @Module({
   imports: [
     ClientsModule.register([
@@ -29,6 +29,6 @@ import { ProductsController } from './products/products.controller';
       },
     ]),
   ],
-  controllers: [AuthController, ProductsController],
+  controllers: [AuthController, ProductController],
 })
 export class AppModule {}
