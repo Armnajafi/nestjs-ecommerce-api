@@ -43,4 +43,14 @@ export class AuthController {
       },
     );
   }
+
+  @Post('verify-access-token')
+  verifyAccessToken(@Body() body: { access_token: string }) {
+    return this.authClient.send(
+      { cmd: 'auth.verify-access-token' },
+      {
+        access_token: body.access_token,
+      },
+    );
+  }
 }

@@ -8,23 +8,41 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
   ) {}
-
+  private readonly MAX_REQUESTS = 1; // Maximum allowed requests
+  private readonly REQUEST_WINDOW = 2 * 60 * 1000; // Time window (2 minutes)
   private JWT_SECRET = process.env.JWT_SECRET;
 
   async requestOtp(phone: string) {
-    // define otp and generate otp with generateOtp() function
-    const otp = this.generateOtp();
+    const currentTime = Date.now();
 
-    // send sms with rabbit queue to user
-    console.log(otp);
-
-    // 2 min expire time;
-    const expireAt = new Date(Date.now() + 2 * 60 * 1000);
-    await this.prisma.otpCode.deleteMany({
-      where: { phone },
+    // Get the count of requests in the last REQUEST_WINDOW for the given phone number
+    const requestCount = await this.prisma.otpCode.count({
+      where: {
+        phone,
+        createdAt: {
+          gte: new Date(currentTime - this.REQUEST_WINDOW), // Filter requests within the time window
+        },
+      },
     });
 
-    // create a new otp
+    // Check if the request count exceeds the maximum allowed
+    if (requestCount >= this.MAX_REQUESTS) {
+      return {
+        success: false,
+        message: 'Too many requests, please try again later.',
+      };
+    }
+
+    // Generate the OTP using the generateOtp() method
+    const otp = this.generateOtp();
+
+    // Log the OTP (in a real application, send it via SMS)
+    console.log(otp);
+
+    // Set expiration time for the OTP (2 minutes)
+    const expireAt = new Date(Date.now() + 2 * 60 * 1000);
+
+    // Create a new OTP record in the database
     await this.prisma.otpCode.create({
       data: {
         phone,
@@ -33,7 +51,7 @@ export class AuthService {
       },
     });
 
-    // return success
+    // Return success response
     return { success: true, message: 'OTP sent' };
   }
 
@@ -171,7 +189,7 @@ export class AuthService {
     }
   }
 
-  checkAccessToken(access_token: string): {
+  verifyAccessToken(access_token: string): {
     success: boolean;
     payload?: AccessTokenPayload;
   } {
