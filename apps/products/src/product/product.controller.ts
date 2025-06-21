@@ -1,17 +1,13 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './product.service';
+import { ProductService } from './product.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { MessagePattern } from '@nestjs/microservices';
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly productService: ProductService) {}
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
-  }
-
-  @MessagePattern({ cmd: 'ping' })
-  ping() {
-    return { msg: 'pong from products_service' };
+  @MessagePattern({ cmd: 'auth.request-otp' })
+  requestOtp(data: { phone: string }) {
+    return this.productService.(data.phone);
   }
 }
