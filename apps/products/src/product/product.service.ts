@@ -5,16 +5,29 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class ProductService {
   constructor(private readonly prisma: PrismaService) {}
   async getProductById(productId: string) {
-    const product = await this.prisma.Product.findUnique({
-      where: { id: productId },
-    });
+    try {
+      // get product by id
+      const product = await this.prisma.product.findUnique({
+        where: { id: productId },
+      });
 
-    // Increment view count
-    await this.prisma.Product.update({
-      where: { id: productId },
-      data: { views: { increment: 1 } }, // Assuming you have a views field
-    });
+      // get existance
+      if (!product) {
+        return { success: false, message: 'Product Not Found' };
+      }
 
-    return product;
+      // increment products views
+      await this.prisma.productViews.upsert({
+        where: { id: productId },
+        update: { views: { increment: 1 }, lastUpdated: new Date() },
+        create: { productId, views: 1 },
+      });
+
+      // return product in service output
+      return product;
+    } catch (error) {
+      console.log(error);
+      return { success: false, message: 'Server Error' };
+    }
   }
 }

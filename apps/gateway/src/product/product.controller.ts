@@ -8,7 +8,10 @@ export class ProductController {
   ) {}
 
   @Get('/product/:id') // Define the route with a parameter
-  getProduct(@Param('id') id: string) {
-    return this.productClient.send({ cmd: 'getProductById' }, { id });
+  getProductById(@Param('id') id: string) {
+    return this.productClient.send(
+      { cmd: 'product.get-product-by-id' },
+      { id },
+    );
   }
 }

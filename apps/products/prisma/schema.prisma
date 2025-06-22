@@ -14,9 +14,19 @@ datasource db {
 }
 
 model Product {
-  id          String   @id @default(uuid())
+  id          String          @id @default(uuid())
   title       String
   description String
   price       Float
-  createdAt   DateTime @default(now())
+  createdAt   DateTime       @default(now())
+  views       ProductViews[]  @relation("ProductViewsRelation")
+}
+
+model ProductViews {
+  id          String   @id @default(uuid())
+  productId   String   
+  views       Int      @default(0)
+  lastUpdated DateTime @updatedAt
+  product     Product  @relation("ProductViewsRelation", fields: [productId], references: [id]) 
+  @@index([productId])
 }
