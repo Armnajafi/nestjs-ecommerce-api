@@ -9,4 +9,9 @@ export class AppController {
   getProductById(data: { id: string }) {
     return this.productService.getProductById(data.id);
   }
+
+  @MessagePattern({ cmd: 'product.get-products' })
+  getProducts() {
+    return this.productService.getProducts();
+  }
 }
