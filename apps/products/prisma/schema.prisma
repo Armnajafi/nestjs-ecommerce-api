@@ -14,19 +14,37 @@ datasource db {
 }
 
 model Product {
-  id          String          @id @default(uuid())
+  id          String   @id @default(cuid())
   title       String
   description String
-  price       Float
-  createdAt   DateTime       @default(now())
-  views       ProductViews[]  @relation("ProductViewsRelation")
+  price       Int
+  discount    Discount? @relation(fields: [discountId], references: [id])
+  discountId  String?   // Optional discount reference
+  images      Image[]   // One-to-many relationship with Image
+  features    String[]
+  colors      String[]
+  views       Int      @default(0) // تعداد بازدیدها
+  viewRecords View[]   // ارتباط یک به چند با مدل View
 }
 
-model ProductViews {
-  id          String   @id @default(uuid())
-  productId   String   
-  views       Int      @default(0)
-  lastUpdated DateTime @updatedAt
-  product     Product  @relation("ProductViewsRelation", fields: [productId], references: [id]) 
-  @@index([productId])
+model Discount {
+  id          String   @id @default(cuid())
+  percentage  Int
+  startDate   DateTime?
+  endDate     DateTime?
+  products    Product[]  // One-to-many relationship with Product
+}
+
+model Image {
+  id          String   @id @default(cuid())
+  url         String
+  productId   String   // Foreign key to Product
+  product     Product? @relation(fields: [productId], references: [id])
+}
+
+model View {
+  id          String   @id @default(cuid())
+  productId   String   // Foreign key to Product
+  product     Product? @relation(fields: [productId], references: [id])
+  timestamp   DateTime @default(now()) // زمان بازدید
 }
