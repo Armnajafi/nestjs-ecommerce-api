@@ -1,6 +1,5 @@
 interface AccessTokenPayload {
   phone: string;
-  email: string;
 }
 
 interface TempRegisterTokenPayload {

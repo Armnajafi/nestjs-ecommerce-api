@@ -11,8 +11,8 @@ export const verifyOtpRules = {
   },
   otp: {
     required: { value: true, message: 'رمز یکبار مصرف الزامی است' },
-    minLen: { value: 6, message: 'تعداد رمز یکبار مصرف باید 6 رقم باشد' },
-    maxLen: { value: 6, message: 'تعداد رمز یکبار مصرف باید 6 رقم باشد' },
+    minLen: { value: 4, message: 'تعداد رمز یکبار مصرف باید 6 رقم باشد' },
+    maxLen: { value: 4, message: 'تعداد رمز یکبار مصرف باید 6 رقم باشد' },
   },
 };
 

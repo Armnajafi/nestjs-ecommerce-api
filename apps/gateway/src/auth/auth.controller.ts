@@ -30,7 +30,6 @@ export class AuthController {
       temp_token: string;
       firstName: string;
       lastName: string;
-      email: string;
     },
   ) {
     return this.authClient.send(
@@ -39,7 +38,6 @@ export class AuthController {
         temp_token: body.temp_token,
         firstName: body.firstName,
         lastName: body.lastName,
-        email: body.email,
       },
     );
   }

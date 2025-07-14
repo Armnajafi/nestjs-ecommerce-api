@@ -8,7 +8,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
   ) {}
-  private readonly MAX_REQUESTS = 1; // Maximum allowed requests
+  private readonly MAX_REQUESTS = 30; // Maximum allowed requests
   private readonly REQUEST_WINDOW = 2 * 60 * 1000; // Time window (2 minutes)
   private JWT_SECRET = process.env.JWT_SECRET;
 
@@ -95,7 +95,6 @@ export class AuthService {
       // create a token with payload of user detail
       const payload = {
         phone: user.phone,
-        email: user.email,
       };
       const accessToken = this.jwtService.sign(payload, {
         secret: this.JWT_SECRET,
@@ -126,13 +125,13 @@ export class AuthService {
     temp_token: string;
     firstName: string;
     lastName: string;
-    email: string;
   }): Promise<{
     success: boolean;
     access_token?: string;
     message?: string;
   }> {
     try {
+      console.log(data);
       // get is temp and phone number from jwt token
       const payload: TempRegisterTokenPayload = this.jwtService.verify(
         data.temp_token,
@@ -163,14 +162,12 @@ export class AuthService {
           phone,
           firstName: data.firstName,
           lastName: data.lastName,
-          email: data.email,
         },
       });
 
       // payload to create a access_token for user
       const realPayload = {
         phone: newUser.phone,
-        email: newUser.email,
       };
 
       // sign access token with jwt
@@ -195,7 +192,9 @@ export class AuthService {
   } {
     try {
       // verify access token
-      const payload = this.jwtService.verify<AccessTokenPayload>(access_token);
+      const payload = this.jwtService.verify<AccessTokenPayload>(access_token, {
+        secret: this.JWT_SECRET,
+      });
 
       return { success: true, payload };
     } catch (error) {
@@ -206,8 +205,8 @@ export class AuthService {
       };
     }
   }
-  // a function to generate otp with 6 digits
+  // a function to generate otp with 4 digits
   private generateOtp() {
-    return '' + Math.floor(100000 + Math.random() * 900000);
+    return '' + Math.floor(1000 + Math.random() * 9000);
   }
 }

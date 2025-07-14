@@ -43,7 +43,6 @@ export class AuthController {
     temp_token: string;
     firstName: string;
     lastName: string;
-    email: string;
   }) {
     // validation rule
     const validateError = await validateCompleteRegister(data);
