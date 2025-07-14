@@ -1,54 +1,223 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ProductService {
   constructor(private readonly prisma: PrismaService) {}
+
+  // گرفتن محصول با id
   async getProductById(productId: string) {
     try {
-      // get product by id
       const product = await this.prisma.product.findUnique({
         where: { id: productId },
+        include: {
+          tags: {
+            include: {
+              tag: true,
+            },
+          },
+          images: true,
+          videos: true,
+          discount: true,
+          reviews: true,
+        },
       });
 
-      // get existance
       if (!product) {
-        return { success: false, message: 'Product Not Found' };
+        throw new NotFoundException('Product Not Found');
       }
 
-      // increment products views
-      await this.prisma.productViews.upsert({
-        where: { id: productId },
-        update: { views: { increment: 1 }, lastUpdated: new Date() },
-        create: { productId, views: 1 },
+      // افزایش بازدید
+      await this.prisma.view.create({
+        data: {
+          productId,
+        },
       });
 
-      // return product in service output
-      return product;
+      // محاسبه قیمت تخفیف‌خورده اگر تخفیف دارد
+      let finalPrice = product.price;
+      if (product.discount && product.discount.percentage > 0) {
+        finalPrice = Math.floor(
+          product.price * (1 - product.discount.percentage / 100),
+        );
+      }
+
+      return {
+        ...product,
+        finalPrice,
+      };
     } catch (error) {
-      console.log(error);
-      return { success: false, message: 'Server Error' };
+      console.error(error);
+      throw error;
     }
   }
 
-  async getProducts(page: number = 1, limit: number = 20) {
-    const skip = (page - 1) * limit; // Calculate the number of products to skip based on the current page
+  // گرفتن محصولات با pagination
+  async getProducts(page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
 
-    // Fetch products from the database with pagination
-    const products = await this.prisma.product.findMany({
-      skip, // Number of products to skip
-      take: limit, // Number of products to fetch
-    });
+    const [products, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        skip,
+        take: limit,
+        include: {
+          tags: {
+            include: {
+              tag: true,
+            },
+          },
+          images: true,
+        },
+      }),
+      this.prisma.product.count(),
+    ]);
 
-    // Get the total number of products in the database
-    const totalProducts = await this.prisma.product.count();
-
-    // Return products along with pagination metadata
     return {
       products,
-      totalProducts, // Total number of products available
-      totalPages: Math.ceil(totalProducts / limit), // Calculate total pages based on limit
-      currentPage: page, // Current page number
+      totalProducts: total,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+    };
+  }
+
+  // جستجو در محصولات
+  async searchProducts(keyword: string, page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+
+    const [products, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where: {
+          OR: [
+            { title: { contains: keyword, mode: 'insensitive' } },
+            { description: { contains: keyword, mode: 'insensitive' } },
+          ],
+        },
+        skip,
+        take: limit,
+        include: {
+          tags: {
+            include: {
+              tag: true,
+            },
+          },
+          images: true,
+        },
+      }),
+      this.prisma.product.count({
+        where: {
+          OR: [
+            { title: { contains: keyword, mode: 'insensitive' } },
+            { description: { contains: keyword, mode: 'insensitive' } },
+          ],
+        },
+      }),
+    ]);
+
+    return {
+      products,
+      totalProducts: total,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+    };
+  }
+
+  // ساخت محصول
+  async createProduct(data: Prisma.ProductCreateInput) {
+    return this.prisma.product.create({
+      data,
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+        images: true,
+      },
+    });
+  }
+
+  // ویرایش محصول
+  async updateProduct(productId: string, data: Prisma.ProductUpdateInput) {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product Not Found');
+    }
+
+    return this.prisma.product.update({
+      where: { id: productId },
+      data,
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+        images: true,
+      },
+    });
+  }
+
+  // حذف محصول
+  async deleteProduct(productId: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product Not Found');
+    }
+
+    await this.prisma.product.delete({
+      where: { id: productId },
+    });
+
+    return { success: true, message: 'Product deleted successfully.' };
+  }
+
+  // گرفتن محصولات بر اساس Tag
+  async getProductsByTag(tagId: string, page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+
+    const [products, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where: {
+          tags: {
+            some: {
+              tagId,
+            },
+          },
+        },
+        skip,
+        take: limit,
+        include: {
+          tags: {
+            include: {
+              tag: true,
+            },
+          },
+          images: true,
+        },
+      }),
+      this.prisma.product.count({
+        where: {
+          tags: {
+            some: {
+              tagId,
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      products,
+      totalProducts: total,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
     };
   }
 }
