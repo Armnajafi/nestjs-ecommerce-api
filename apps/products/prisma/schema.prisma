@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,37 +8,88 @@ datasource db {
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  price       Int
-  discount    Discount? @relation(fields: [discountId], references: [id])
-  discountId  String?   // Optional discount reference
-  images      Image[]   // One-to-many relationship with Image
-  features    String[]
-  colors      String[]
-  views       Int      @default(0) // تعداد بازدیدها
-  viewRecords View[]   // ارتباط یک به چند با مدل View
+  id             String        @id @default(cuid())
+  title          String
+  slug           String        @unique
+  description    String
+  shortDesc      String?
+  price          Int
+  oldPrice       Int?
+  sku            String?       @unique
+  stock          Int?          // موجودی
+  isActive       Boolean       @default(true)
+  publishedAt    DateTime?
+  views          Int           @default(0)
+  metaTitle      String?
+  metaDescription String?
+  metaKeywords   String[]
+  features       String[]
+  colors         String[]
+  discountId     String?
+  discount       Discount?     @relation(fields: [discountId], references: [id])
+  images         Image[]
+  videos         Video[]
+  viewRecords    View[]
+  reviews        Review[]
+  tags           TagOnProduct[]
+  extra          Json?         // اطلاعات اضافی محصول (ابعاد، وزن، برند، هر چی که بخوای)
 }
 
 model Discount {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   percentage  Int
   startDate   DateTime?
   endDate     DateTime?
-  products    Product[]  // One-to-many relationship with Product
+  products    Product[]
 }
 
 model Image {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   url         String
-  productId   String   // Foreign key to Product
-  product     Product? @relation(fields: [productId], references: [id])
+  altText     String?
+  isPrimary   Boolean   @default(false)
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id])
+}
+
+model Video {
+  id          String    @id @default(cuid())
+  url         String
+  title       String?
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id])
 }
 
 model View {
-  id          String   @id @default(cuid())
-  productId   String   // Foreign key to Product
-  product     Product? @relation(fields: [productId], references: [id])
-  timestamp   DateTime @default(now()) // زمان بازدید
+  id          String    @id @default(cuid())
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id])
+  timestamp   DateTime  @default(now())
+  ipAddress   String?
+  userAgent   String?
+}
+
+model Review {
+  id          String    @id @default(cuid())
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id])
+  userId      String?
+  rating      Int
+  title       String?
+  body        String?
+  createdAt   DateTime  @default(now())
+}
+
+model Tag {
+  id          String    @id @default(cuid())
+  name        String
+  productsOnTag TagOnProduct[]
+}
+
+model TagOnProduct {
+  id          String    @id @default(cuid())
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id])
+  tagId       String
+  tag         Tag       @relation(fields: [tagId], references: [id])
 }
